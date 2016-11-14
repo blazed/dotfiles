@@ -79,24 +79,24 @@ fi
 
 COMPLETION_WAITING_DOTS="true"
 
-[[ ! -d ~/.lib/antigen ]] &&
-	    mkdir ~/.lib && git clone https://github.com/zsh-users/antigen.git ~/.lib/antigen
-. ~/.lib/antigen/antigen.zsh
+#[[ ! -d ~/.lib/antigen ]] &&
+#	    mkdir ~/.lib && git clone https://github.com/zsh-users/antigen.git ~/.lib/antigen
+#. ~/.lib/antigen/antigen.zsh
 
-antigen use oh-my-zsh
+#antigen use oh-my-zsh
 
-antigen bundles <<EOBUNDLES
-  zsh-users/zsh-syntax-highlighting
-  git
-  archlinux
-  git-extra
-  nvm
-  ssh-agent
-  systemd
-  zsh-navigation-tools
-  command-not-found
-EOBUNDLES
+#antigen bundles <<EOBUNDLES
+#  zsh-users/zsh-syntax-highlighting
+#  git
+#  archlinux
+#  git-extra
+#  nvm
+#  ssh-agent
+#  systemd
+#  zsh-navigation-tools
+#  command-not-found
+#EOBUNDLES
 
-antigen apply
+#antigen apply
 
 DOTFILES_LOADED=1
