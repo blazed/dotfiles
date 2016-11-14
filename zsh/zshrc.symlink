@@ -1,0 +1,102 @@
+export DOTFILES=$HOME/.dotfiles
+export ZSH=$DOTFILES/zsh
+
+# display how long all tasks over 10 seconds take
+export REPORTTIME=10
+
+[[ -e ~/.terminfo  ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
+
+if [[ -d ~/code  ]]; then
+    export CODE_DIR=~/code
+fi
+
+for config ($ZSH/**/*.zsh) source $config
+
+if [[ -a ~/.localrc  ]]; then
+    source ~/.localrc
+fi
+
+autoload -U compinit add-zsh-hook zcalc
+compinit
+
+for config ($ZSH/**/*completion.sh) source $config
+
+export EDITOR="nvim"
+export GOPATH="$HOME/code/go"
+export PATH="$PATH:$GOPATH/bin"
+
+# add /usr/local/sbin
+if [[ -d /usr/local/sbin  ]]; then
+    export PATH=/usr/local/sbin:$PATH
+fi
+# adding path directory for custom scripts
+export PATH=$DOTFILES/bin:$PATH
+
+[[ -f $HOME/.travis/travis.sh  ]] && source $HOME/.travis/travis.sh
+[ -z "$TMUX"  ] && export TERM=xterm-256color
+
+if [[ -d ~/bin  ]]; then
+    export PATH=~/bin:$PATH
+fi
+
+if hash rbenv 2>/dev/null; then
+    eval "$(rbenv init -)"
+fi
+
+# alias git to hub
+if hash hub 2>/dev/null; then
+    eval "$(hub alias -s)"
+fi
+
+# source nvm
+export NVM_DIR=~/.nvm
+
+load-nvmrc() {
+    if [[ -f .nvmrc && -r .nvmrc  ]]; then
+        nvm use
+    fi
+}
+add-zsh-hook chpwd load-nvmrc
+
+if hash brew 2>/dev/null; then
+    source $(brew --prefix nvm)/nvm.sh
+    source `brew --prefix`/etc/profile.d/z.sh
+    # when sourcing, check and ensure that the correct Node version is set
+    load-nvmrc
+fi
+
+[ -f ~/.fzf.zsh  ] && source ~/.fzf.zsh
+
+BASE16_SHELL="$HOME/.config/base16-shell/base16-tomorrow.dark.sh"
+[[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
+
+if [ -z ${DOTFILES_LOADED+x}  ]; then
+    # install zsh-syntax-highlighting
+    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    # install zsh autosuggestions
+    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+COMPLETION_WAITING_DOTS="true"
+
+[[ ! -d ~/.lib/antigen ]] &&
+	    mkdir ~/.lib && git clone https://github.com/zsh-users/antigen.git ~/.lib/antigen
+. ~/.lib/antigen/antigen.zsh
+
+antigen use oh-my-zsh
+
+antigen bundles <<EOBUNDLES
+  zsh-users/zsh-syntax-highlighting
+  git
+  archlinux
+  git-extra
+  nvm
+  ssh-agent
+  systemd
+  zsh-navigation-tools
+  command-not-found
+EOBUNDLES
+
+antigen apply
+
+DOTFILES_LOADED=1

@@ -1,0 +1,15 @@
+# X Settings
+xrdb -merge .Xresources &
+
+# Java fix
+wmname LG3D &
+
+#/usr/bin/setxkbmap se -option caps:escape &
+/usr/bin/setxkbmap -layout us -variant dvp -option compose:102 -option caps:escape &
+numlockx &
+
+# Start Pulseaudio
+/usr/bin/start-pulseaudio-x11
+
+# Start awesome
+exec awesome
