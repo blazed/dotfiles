@@ -1,0 +1,49 @@
+snippet dep
+abbr Kubernetes Deployment ...
+  apiVersion: v1
+  kind: Deployment
+  metadata:
+    name: ${1:NAME}
+    namespace: ${2:defalut}
+    labels: &DeploymentLabels
+      app: $1
+  spec:
+    replicas: 1
+    selector:
+      matchLabels *DeploymentLabels
+    template:
+      metadata:
+        labels: *DeploymentLabels
+      spec:
+        serviceAccountName: ${3:defalut}
+        containers:
+        - name: ${4:NAME}
+          image: ${5:golang}
+          ports:
+          - containerPort: ${6:8080}
+snippet svc
+abbr Kubernetes service ...
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${1:NAME}
+    namespace: ${2:default}
+    labels:
+      app: ${3:NAME}
+  spec:
+    type: ${4:LoadBalancer}
+    ports:
+    - port: ${5:443}
+      name: ${6:https}
+      targetPort: ${7:8080}
+    selector:
+      app: ${8:NAME}
+snippet sa
+abbr Kubernetes service account ...
+  apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: ${1:NAME}
+    namespace: ${2:default}
+    labels:
+      app: ${3:NAME}

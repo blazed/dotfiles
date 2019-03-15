@@ -17,7 +17,7 @@ set textwidth=120
 set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 
-let g:python_host_prog = '/usr/local/bin/python'
+" let g:python_host_prog = '/usr/local/bin/python'
 let g:python3_host_prog = '/usr/local/bin/python3'
 
 " }}}
@@ -41,7 +41,7 @@ let g:onedark_termcolors=16
 let g:onedark_terminal_italics=1
 
 syntax on
-" set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
+set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 colorscheme onedark         " Set the colorscheme
 
 " make the highlighting of tabs and other non-text less annoying
@@ -54,8 +54,9 @@ highlight htmlArg cterm=italic
 
 set number                  " show line numbers
 set relativenumber          " show relative line numbers
+set colorcolumn=79
 
-set wrap                    " turn on line wrapping
+set nowrap                    " turn on line wrapping
 set wrapmargin=8            " wrap lines when coming within n characters from side
 set linebreak               " set soft wrapping
 set showbreak=…             " show ellipsis at breaking
@@ -79,9 +80,13 @@ set noexpandtab             " insert tabs rather than spaces for <Tab>
 set smarttab                " tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
 set tabstop=4               " the visible width of tabs
 set softtabstop=4           " edit as if the tabs are 4 characters wide
-set shiftwidth=4            " number of spaces to use for indent and unindent
+set shiftwidth=2            " number of spaces to use for indent and unindent
 set shiftround              " round indent to a multiple of 'shiftwidth'
-set completeopt+=longest
+set completeopt=menuone,longest " completion window
+set completeopt+=noinsert
+set completeopt+=noselect
+set completeopt+=preview
+set pumheight=6                 " Keep a small completion window
 
 " code folding settings
 set foldmethod=syntax       " fold based on indent
@@ -99,7 +104,7 @@ set wildmenu                " enhanced command line completion
 set hidden                  " current buffer can be put into background
 set showcmd                 " show incomplete commands
 set noshowmode              " don't show which mode disabled for PowerLine
-set wildmode=list:longest   " complete files like a shell
+set wildmode=list:longest,full   " complete files like a shell
 set scrolloff=3             " lines of text around cursor
 set shell=$SHELL
 set cmdheight=1             " command bar height
@@ -123,9 +128,19 @@ set visualbell
 set t_vb=
 set tm=500
 
+" directory settings
+call system('mkdir -vp ~/.backup/undo/ > /dev/null 2>&1')
+set backupdir=~/.backup,.       " list of directories for the backup file
+set directory=~/.backup,~/tmp,. " list of directory names for the swap file
+set nobackup            " do not write backup files
+set backupskip+=~/tmp/*,/private/tmp/* " skip backups on OSX temp dir, for crontab -e to properly work
+set noswapfile          " do not write .swp files
+set undofile
+set undodir=~/.backup/undo/,~/tmp,.
+
 if has('mouse')
-	set mouse=a
-	" set ttymouse=xterm2
+  set mouse=a
+  " set ttymouse=xterm2
 endif
 
 " }}}
@@ -231,20 +246,33 @@ augroup configgroup
     autocmd BufWritePost .vimrc,.vimrc.local,init.vim source %
     autocmd BufWritePost .vimrc.local source %
     " save all files on focus lost, ignoring warnings about untitled buffers
-    autocmd FocusLost * silent! wa
+    " autocmd FocusLost * silent! wa
 
     " make quickfix windows take all the lower section of the screen
     " when there are multiple windows open
     autocmd FileType qf wincmd J
 
     autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+    autocmd FileType markdown let delimitMate_autoclose = 0
     let g:markdown_fenced_languages = ['css', 'javascript', 'js=javascript', 'json=javascript', 'stylus', 'html']
 
     " autocmd! BufEnter * call functions#ApplyLocalSettings(expand('<afile>:p:h'))
 
     autocmd BufNewFile,BufRead,BufWrite *.md syntax match Comment /\%^---\_.\{-}---$/
 
-    autocmd! BufWritePost * Neomake
+    " autocmd! BufWritePost * Neomake
+
+    " Golang
+    au FileType go setl tabstop=4
+    au FileType go setl shiftwidth=4
+    au FileType go setl noexpandtab
+    " do not wrap generate go protobuf files
+    autocmd BufNewFile,BufRead *.pb.go set nowrap
+
+    " terraform
+    autocmd FileType terraform setlocal commentstring=#%s
+
+    autocmd FileType gitcommit setlocal spell
 augroup END
 
 " }}}
@@ -312,10 +340,10 @@ nmap <leader>m :MarkedOpen!<cr>
 nmap <leader>mq :MarkedQuit<cr>
 nmap <leader>* *<c-o>:%s///gn<cr>
 
-let g:neomake_javascript_jshint_maker = {
-    \ 'args': ['--verbose'],
-    \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
-\ }
+" let g:neomake_javascript_jshint_maker = {
+"     \ 'args': ['--verbose'],
+"     \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+" \ }
 
 let g:neomake_typescript_tsc_maker = {
     \ 'args': ['-m', 'commonjs', '--noEmit' ],
@@ -343,6 +371,157 @@ let g:tsuquyomi_disable_default_mappings = 1
 let g:vim_json_syntax_conceal = 0
 
 let g:SuperTabCrMapping = 0
+
+" go-vim
+" " Run goimports when running gofmt
+let g:go_fmt_command = "goimports"
+
+" Set neosnippet as snippet engine
+let g:go_snippet_engine = "neosnippet"
+
+" Enable syntax highlighting per default
+let g:go_highlight_types = 1
+let g:go_highlight_fields = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_methods = 1
+let g:go_highlight_structs = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_build_constraints = 1
+let g:go_highlight_extra_types = 1
+
+" Show type information
+let g:go_auto_type_info = 1
+
+" Highlight variable uses
+let g:go_auto_sameids = 1
+
+" Fix for location list when vim-go is used together with Syntastic
+let g:go_list_type = "quickfix"
+
+" gometalinter configuration
+let g:go_metalinter_command = ""
+let g:go_metalinter_deadline = "5s"
+let g:go_metalinter_enabled = [
+    \ 'deadcode',
+    \ 'errcheck',
+    \ 'gas',
+    \ 'goconst',
+    \ 'gocyclo',
+    \ 'golint',
+    \ 'gosimple',
+    \ 'ineffassign',
+    \ 'vet',
+    \ 'vetshadow'
+\]
+
+" Set whether the JSON tags should be snakecase or camelcase
+let g:go_addtags_transform = "snakecase"
+
+" YouCompleteMe options
+let g:ycm_server_python_interpreter = '/usr/bin/python'
+let g:ycm_collect_identifiers_from_tags_files = 1
+let g:ycm_use_ultisnips_completer = 1
+
+" Deoplate
+let g:deoplete#sources#go#gocode_binary = $GOPATH.'/bin/gocode-gomod'
+let g:deoplete#sources#go#sort_class = ['package', 'func', 'type', 'var', 'const']
+let g:deoplete#sources#go#json_directory = '~/.cache/deoplete/go/$GOOS_$GOARCH'
+let g:deoplete#sources#rust#racer_binary=$HOME.'/.cargo/bin/racer'
+
+" ultisnips options
+let g:UltiSnipsExpandTrigger = "<c-l>"
+let g:UltiSnipsJumpForwardTrigger = "<c-j>"
+let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
+let g:UltiSnipsListSnippets = "<c-,>"
+
+" rust
+let g:rustfmt_autosave = 1
+let g:deoplete#sources#rust#rust_source_path=$HOME.'/code/github/rust/src'
+
+" scala
+let g:deoplete#omni#input_patterns={} 
+let g:deoplete#omni#input_patterns.scala='[^. *\t]\.\w*'
+
+" Neosnippet
+let g:neosnippet#disable_runtime_snippets = {
+    \ 'go': 1
+\}
+
+" Keybindings
+imap <C-k> <Plug>(neosnippet_expand_or_jump)
+smap <C-k> <Plug>(neosnippet_expand_or_jump)
+xmap <C-k> <Plug>(neosnippet_expand_target)
+
+" Set the path to our snippets
+let g:neosnippet#snippets_directory='~/.config/nvim/snippets,~/.config/nvim/plugged/vim-snippets/snippets'
+
+" ale
+" Error and warning signs.
+let g:ale_sign_error = '✗'
+let g:ale_sign_warning = '⚠'
+
+" syntastic
+" set statusline+=%#warningmsg#
+" set statusline+=%{SyntasticStatuslineFlag()}
+" set statusline+=%*
+
+" let g:syntastic_always_populate_loc_list = 1
+" let g:syntastic_auto_loc_list = 1
+" let g:syntastic_check_on_open = 1
+" let g:syntastic_check_on_wq = 0
+
+" Enable integration with airline.
+let g:airline#extensions#ale#enabled = 1
+
+" vim-terraform
+let g:terraform_fmt_on_save = 1
+
+" tagbar
+" Toggle tagbar
+nmap <silent> <leader>tb :TagbarToggle<CR>
+
+" tagbar options for go
+let g:tagbar_type_go = {
+    \ 'ctagstype' : 'go',
+    \ 'kinds'     : [
+        \ 'p:package',
+        \ 'i:imports:1',
+        \ 'c:constants',
+        \ 'v:variables',
+        \ 't:types',
+        \ 'n:interfaces',
+        \ 'w:fields',
+        \ 'e:embedded',
+        \ 'm:methods',
+        \ 'r:constructor',
+        \ 'f:functions'
+    \ ],
+    \ 'sro' : '.',
+    \ 'kind2scope' : {
+        \ 't' : 'ctype',
+        \ 'n' : 'ntype'
+    \ },
+    \ 'scope2kind' : {
+        \ 'ctype' : 't',
+        \ 'ntype' : 'n'
+    \ },
+    \ 'ctagsbin'  : 'gotags',
+    \ 'ctagsargs' : '-sort -silent'
+\ }
+
+" Set easytags options
+" let g:easytags_opts = ['--options=$HOME/.ctags']
+set tags=./tags;,tags;
+let g:easytags_dynamic_files = 2
+let g:easytags_events = ['BufWritePost']
+" let g:easytags_async = 1
+" When you set g:easytags_dynamic_files to 2 new tags files are created in the same directory as the file you're editing. If you want the tags files to be created in your working directory instead then change Vim's 'cpoptions' option to include the lowercase letter 'd'.
+set cpoptions=aAceFsBd
+
+let delimitMate_expand_cr = 1
+
+" Terraform
+let g:terraform_align=1
 
 " }}}
 
